@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="style/style.css">
+
+    <style type="text/css" media="print">
+        .noprint {
+            display: none
+        }
+        
+        .print {
+            display: block !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header class="el-header noprint">
+            <div class="icon-btns">
+                <i class="icon-list" @click="changeLeftMenu"></i>
+                <i class="icon-skip_previous" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('first')"></i>
+                <i class="icon-play_arrow prev-icon" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('prev')"></i>
+                <i class="icon-play_arrow" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('next')"></i>
+                <i class="icon-skip_next" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('last')"></i>
+                <select v-model="currentPage">
+                    <option v-for="page in pageNum" v-bind:value="page">page {{ page }}</option>
+                </select>
+                <i class="icon-zoom_in" v-bind:class="{'disabled': zoomNum == 2}" @click="modifyZoom('in')"></i>
+                <select v-model="zoomNum">
+                    <option value="0.5">50%</option>
+                    <option value="0.6">60%</option>
+                    <option value="0.7">70%</option>
+                    <option value="0.8">80%</option>
+                    <option value="0.9">90%</option>
+                    <option value="1.0" selected>100%</option>
+                    <option value="1.1">110%</option>
+                    <option value="1.2">120%</option>
+                    <option value="1.3">130%</option>
+                    <option value="1.4">140%</option>
+                    <option value="1.5">150%</option>
+                    <option value="1.6">160%</option>
+                    <option value="1.7">170%</option>
+                    <option value="1.8">180%</option>
+                    <option value="1.9">190%</option>
+                    <option value="2.0">200%</option>
+                </select>
+                <i class="icon-zoom_out" v-bind:class="{'disabled': zoomNum == 0.5}" @click="modifyZoom('out')"></i>
+                <i class="icon-format_align_left" @click="textAlign = 'left'"></i>
+                <i class="icon-format_align_center" @click="textAlign = 'center'"></i>
+                <i class="icon-format_align_right" @click="textAlign = 'right'"></i>
+                <i class="icon-print" @click="window.print()"></i>
+            </div>
+        </header>
+
+        <aside class="noprint" width="240px" v-show="ifMenuShow">
+            <nav class="tabNav">
+                <ul>
+                    <li v-bind:class="{ 'curr': currentNav == 0 }" @click="currentNav = 0">Page</li>
+                    <li v-bind:class="{ 'curr': currentNav == 1 }" @click="currentNav = 1">Bookmark</li>
+                </ul>
+
+                <div class="clear"></div>
+            </nav>
+
+            <div class="tab-conent scrollbar" v-bind:style="{ height: asideHeight + 'px' }">
+
+            <section v-show="currentNav == 0">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-file-text2"></i> page {{ page }}</li>
+                </ul>
+            </section>
+
+            <section v-show="currentNav == 1">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-turned_in_not"></i> Bookmark {{ page }}</li>
+                </ul>
+            </section>
+        </div>
+
+        </aside>
+        <div class="main scrollbar noprint"  v-bind:style="{ height: mainHeight + 'px' }" v-bind:class="{ 'mainLeftM': ifMenuShow, 'aleft': textAlign === 'left','acenter': textAlign === 'center','aright': textAlign === 'right'}">
+            <div class="conent" v-html="pageContent" v-bind:style="zoomStyle"></div>
+
+            <div class="clear"></div>
+        </div>
+
+        <!--专门只为打印的内容-->
+        <div class="conent print" style="display:none" v-html="pageContent"></div>
+    </div>
+</body>
+<!-- 先引入 Vue -->
+<script src="js/vue.min.js"></script>
+<script>
+
+var app = new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                // visible: false,
+                isCollapse: false,
+                currentNav: 0,
+                activeName2: 'first',
+                pageNum: 1, 
+                currentPage: 1,
+                pageContent: '',
+                asideHeight: 300,
+                mainHeight: 300,
+                ifMenuShow: true,
+                zoomNum: '1.0',
+                textAlign: 'left',
+                zoomStyle: {},
+                pageDatas: ['<div><p><span style="position:absolute;top:16.686523px;left:606.739136px"><nobr><span style="font-family:Helvetica;font-size:7px;font-style:normal;font-weight:normal;color:#666666;writing-mode: horizontal-tb;">Last Updated on 9th October 2023 </span></nobr></span></p><p><span style="position:absolute;top:75.358482px;left:153.521118px"><nobr><span style="font-family:Helvetica;font-size:10px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;"><a href="mailto:msy32@scarletmail.rutgers.edu">msy32@scarletmail.rutgers.edu </a>| 848.466.3104 | <a href="mailto:myoussef2435@gmail.com">myoussef2435@gmail.com</a></span></nobr></span></p><p><span style="position:absolute;top:23.674154px;left:252.104599px"><nobr><span style="font-family:Helvetica;font-size:39px;font-style:normal;font-weight:normal;color:#666666;writing-mode: horizontal-tb;">Mena Youssef </span></nobr></span></p><div style="position:absolute;top:103.736732px;left:0.000000px"><nobr><img height="3.000000" width="816.000000" src ="bgimg/bg00001.jpg"/><br></nobr></div><p><span style="position:absolute;top:122.255699px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:15px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">EDUCATION</span></nobr></span></p><p><span style="position:absolute;top:149.112061px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:11px;font-weight:bold;color:#333333;writing-mode: horizontal-tb;">RUTGERS UNIVERSITY </span></nobr></span></p><p><span style="position:absolute;top:165.497482px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:10px;font-style:normal;font-weight:normal;color:#333333;writing-mode: horizontal-tb;">B.S. in Computer Science </span></nobr></span></p><p><span style="position:absolute;top:182.707932px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">May 2026 | New Brunswick, NJ</span></nobr></span><span style="position:absolute;top:200.463547px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Minor in Data Science and Economics </span></nobr></span><span style="position:absolute;top:214.629471px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">Cum. GPA: 3.45 / 4.0</span></nobr></span></p><p><span style="position:absolute;top:252.561356px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:15px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">LINKS</span></nobr></span></p><p><span style="position:absolute;top:279.567383px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Github:// <a href="https://github.com/myoussef2435?tab=repositories" target="_blank">myoussef2435</a></span></nobr></span></p><p><span style="position:absolute;top:295.527435px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">LinkedIn:// <a href="https://www.linkedin.com/in/mena-youssef-a67b54268/" target="_blank">Mena Youssef </a></span></nobr></span></p><p><span style="position:absolute;top:311.488861px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Personal Website:// <a href="https://myoussef2435.github.io/myoussef.github.io/" target="_blank">Mena Youssef - </a></span></nobr></span><span style="position:absolute;top:327.449066px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;"><a href="https://myoussef2435.github.io/myoussef.github.io/" target="_blank">Github Pages </a></span></nobr></span></p><p><span style="position:absolute;top:363.585358px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:15px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">COURSEWORK</span></nobr></span></p><p><span style="position:absolute;top:390.441772px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:11px;font-weight:bold;color:#333333;writing-mode: horizontal-tb;">UNDERGRADUATE</span></nobr></span></p><p><span style="position:absolute;top:408.543335px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Discrete Structures I </span></nobr></span></p><p><span style="position:absolute;top:424.503418px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Operating Systems </span></nobr></span></p><p><span style="position:absolute;top:440.463531px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Data Structures </span></nobr></span></p><p><span style="position:absolute;top:456.425018px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Introduction to Computer Science </span></nobr></span></p><p><span style="position:absolute;top:472.385132px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Functional Programming </span></nobr></span></p><p><span style="position:absolute;top:488.345276px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Physics I, &amp; II</span></nobr></span></p><p><span style="position:absolute;top:504.305389px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Calculus I, II &amp; III,</span></nobr></span></p><p><span style="position:absolute;top:529.801636px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:15px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">SKILLS</span></nobr></span></p><p><span style="position:absolute;top:556.658020px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:11px;font-weight:bold;color:#333333;writing-mode: horizontal-tb;">PROGRAMMING</span></nobr></span></p><p><span style="position:absolute;top:572.964050px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">Over 5000 lines: </span></nobr></span></p><p><span style="position:absolute;top:590.719727px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Java </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Python </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Javascript</span></nobr></span></p><p><span style="position:absolute;top:604.885620px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">Over 1000 lines: </span></nobr></span></p><p><span style="position:absolute;top:622.641296px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">C </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">HTML </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">R </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Assembly </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">TypeScript </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span></nobr></span><span style="position:absolute;top:638.601440px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">CSS</span></nobr></span></p><p><span style="position:absolute;top:652.766052px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">Familiar:</span></nobr></span></p><p><span style="position:absolute;top:670.521729px;left:47.321198px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">iOS </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Android </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">MySQL C++ </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span></nobr></span></p><p><span style="position:absolute;top:122.255699px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:15px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">EXPERIENCE</span></nobr></span></p><p><span style="position:absolute;top:148.207687px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:11px;font-weight:bold;color:#333333;writing-mode: horizontal-tb;">MSG LLC </span><span style="font-family:Helvetica;font-size:10px;font-style:normal;font-weight:normal;color:#333333;writing-mode: horizontal-tb;">| Accountant Intern </span></nobr></span></p><p><span style="position:absolute;top:165.418045px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">Jan 2023 - Apr 2023 | North Brunswick, NJ</span></nobr></span></p><p><span style="position:absolute;top:193.813889px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Conducted financial data analysis on over 400+ clients using Excel. </span></nobr></span></p><p><span style="position:absolute;top:211.104980px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Utilized tax preparation software, Drake Tax Prep, to effectively organize and </span></nobr></span><span style="position:absolute;top:227.065109px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">chronologically file taxes and store client information. </span></nobr></span></p><p><span style="position:absolute;top:244.354904px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Scheduled and managed appointments with clients, ensuring orderly workflow. </span></nobr></span></p><p><span style="position:absolute;top:271.899658px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:11px;font-weight:bold;color:#333333;writing-mode: horizontal-tb;">OCEANPORT PHARMACY </span><span style="font-family:Helvetica;font-size:10px;font-style:normal;font-weight:normal;color:#333333;writing-mode: horizontal-tb;">| Pharmacy Technican, Data Reporter </span></nobr></span></p><p><span style="position:absolute;top:289.110107px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">Aug 2023 </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;">– </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">Present | Oceanport, NJ</span></nobr></span></p><p><span style="position:absolute;top:320.166504px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Developed strong problem-solving skills in pharmacy settings, addressing</span></nobr></span><span style="position:absolute;top:336.126617px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">medication-related issues and identifying root causes, applicable to debugging </span></nobr></span><span style="position:absolute;top:352.086761px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">and troubleshooting software. </span></nobr></span></p><p><span style="position:absolute;top:369.377838px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Processed over 500+ prescriptions, ensuring accuracy and compliance with </span></nobr></span><span style="position:absolute;top:385.338013px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">regulations.</span></nobr></span></p><p><span style="position:absolute;top:402.629150px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Organized and managed client data using RXQ, a specialized pharmacy </span></nobr></span><span style="position:absolute;top:418.589264px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">software.</span></nobr></span></p><p><span style="position:absolute;top:457.386292px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:15px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">PROJECTS</span></nobr></span></p><p><span style="position:absolute;top:483.337036px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:11px;font-weight:bold;color:#333333;writing-mode: horizontal-tb;">UPPER ROOM MEDIA </span><span style="font-family:Helvetica;font-size:10px;font-style:normal;font-weight:normal;color:#333333;writing-mode: horizontal-tb;">| React, TypeScript, Git, Tailwind CSS </span></nobr></span></p><p><span style="position:absolute;top:500.548706px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">Jan 2021 </span><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;">– </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">Present | Monroe, NJ</span></nobr></span></p><p><span style="position:absolute;top:520.963745px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Enhanced user experience by implementing efficient methods for storing user </span></nobr></span><span style="position:absolute;top:536.923828px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">data and improving audio quality for 5000+ users. </span></nobr></span></p><p><span style="position:absolute;top:554.215027px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Introduced efficient methods to store user data in proper files, and applied </span></nobr></span><span style="position:absolute;top:570.175110px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">data-driven decision-making processes to optimize church event planning, </span></nobr></span><span style="position:absolute;top:586.135254px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">sermon topics, and resource allocation based on collected insights. </span></nobr></span></p><p><span style="position:absolute;top:603.426392px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Collaborated with a team of 9 developers</span></nobr></span></p><p><span style="position:absolute;top:630.971191px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:11px;font-weight:bold;color:#333333;writing-mode: horizontal-tb;">HACK-A-THON </span><span style="font-family:Helvetica;font-size:10px;font-style:normal;font-weight:normal;color:#333333;writing-mode: horizontal-tb;">| Java, Python</span></nobr></span></p><p><span style="position:absolute;top:648.181580px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">July 2023 | Monroe, NJ</span></nobr></span></p><p><span style="position:absolute;top:668.597900px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Participated in a collaborative church event, bringing together computer </span></nobr></span><span style="position:absolute;top:684.558044px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">science students to work on personal projects and collaborate with peers to </span></nobr></span><span style="position:absolute;top:700.518250px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">develop innovative ideas. </span></nobr></span></p><p><span style="position:absolute;top:717.807922px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Facilitated skill improvement for students and provided exposure to industry </span></nobr></span><span style="position:absolute;top:733.768066px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">professionals, fostering an environment of learning about new technologies </span></nobr></span><span style="position:absolute;top:749.729614px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">and best practices. </span></nobr></span></p><p><span style="position:absolute;top:777.274292px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:11px;font-weight:bold;color:#333333;writing-mode: horizontal-tb;">INFINITY WAR </span><span style="font-family:Helvetica;font-size:10px;font-style:normal;font-weight:normal;color:#333333;writing-mode: horizontal-tb;">| Java</span></nobr></span></p><p><span style="position:absolute;top:794.484680px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">April 2023 | Rutgers University - New Brunswick, NJ</span></nobr></span></p><p><span style="position:absolute;top:814.901062px;left:311.927521px"><nobr><span style="font-family:Arial Unicode MS;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;">• </span><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">Demonstrated proficiency in various data structures, including linked lists, </span></nobr></span><span style="position:absolute;top:830.861145px;left:326.296295px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">trees, heaps, queues, stacks, etc.</span></nobr></span></p><p><span style="position:absolute;top:869.658203px;left:293.034058px"><nobr><span style="font-family:Helvetica;font-size:15px;font-style:normal;font-weight:normal;color:#6A6A6A;writing-mode: horizontal-tb;">AWARDS</span></nobr></span></p><p><span style="position:absolute;top:898.160828px;left:301.016388px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">2023 Spring Semester Dean’s List (3.7 GPA) </span></nobr></span></p><p><span style="position:absolute;top:914.120850px;left:301.016388px"><nobr><span style="font-family:Helvetica;font-size:9px;font-style:normal;font-weight:normal;color:#2B2B2B;writing-mode: horizontal-tb;">2023 Udemy R Certificate of Completion </span></nobr></span></p></div>']
+            }
+        },
+        mounted: function() {
+            this.$nextTick(function() {
+                this.pageNum = this.pageDatas.length;
+                this.pageContent = this.pageDatas[0];
+
+                this.setLeftMenuHeight();
+            })
+        },
+        watch: {
+            'currentPage': function(newVal, oldValue) {
+                // console.log('newVal ' + newVal, 'oldValue ' + oldValue);
+                if (newVal) {
+                    this.pageContent = this.pageDatas[this.currentPage - 1];
+                }
+            },
+            'zoomNum': function(newVal, oldValue) {
+                if (newVal) {
+                    this.zoomStyle = {
+                        'transform': 'scale(' + newVal + ')',
+                        '-webkit-transform': 'scale(' + newVal + ')',
+                        '-ms-transform': 'scale(' + newVal + ')',
+                        '-moz-transform': 'scale(' + newVal + ')',
+                        '-o-transform': 'scale(' + newVal + ')'
+                    }
+                }
+            }
+        },
+        methods: {
+            
+            changeCurrentPage: function(methods) {
+                switch (methods) {
+                    case 'first':
+                        this.currentPage = 1;
+                        break;
+                    case 'prev':
+                        if (this.currentPage > 1) {
+                            this.currentPage -= 1;
+                        }
+                        break;
+                    case 'next':
+                        if (this.currentPage < this.pageNum) {
+                            this.currentPage += 1;
+                        }
+                        break;
+                    case 'last':
+                        this.currentPage = this.pageNum;
+                        break;
+                }
+            },
+
+            gotoPage: function(page) {
+                console.log(page);
+                this.currentPage = page;
+            },
+            modifyZoom: function(type) {
+                switch (type) {
+                    case 'in':
+                        if (this.zoomNum < 2) {
+                            // this.zoomNum = (this.zoomNum + 0.1).toFixed(1);
+                            this.zoomNum = (parseFloat(this.zoomNum) + 0.1).toFixed(1);
+                        }
+                        break;
+                    case 'out':
+                        if (this.zoomNum > 0.5) {
+                            this.zoomNum = (parseFloat(this.zoomNum) - 0.1).toFixed(1);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                console.log(this.zoomNum);
+            },
+            setLeftMenuHeight: function() {
+                // this.asideHeight = document.body.scrollHeight - 60;
+                this.mainHeight = document.documentElement.clientHeight - 60 - 20;
+                // 60为头部导航高度， 46为menu高度， 40为上下padding
+                this.asideHeight = this.mainHeight - 20 - 46;
+            },
+            changePage: function(page) {
+                this.currentPage = page;
+                // this.pageContent = this.pageDatas[page - 1];
+            },
+            changeLeftMenu: function() {
+                this.ifMenuShow = !this.ifMenuShow;
+            }
+        }
+    });
+
+function gotoPage(page) {
+    console.log(page);
+    app.gotoPage(page);
+}
+
+</script>
+
+</html>
